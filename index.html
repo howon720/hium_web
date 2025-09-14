@@ -197,12 +197,69 @@
                                 </div>
                                 <img id="upload-preview" class="upload-preview" alt="미리보기" />
                             </div>
-                            <div class="upload-meta">
+                            <!-- <div class="upload-meta">
                                 <textarea name="message" id="upload-message" rows="3" placeholder="이야기나 텍스트를 입력해보세요."></textarea>
+                            </div> -->
+                            <div class="upload-meta">
+                                <div class="meta-row">
+                                    <!-- 80%: 텍스트 -->
+                                    <div class="meta-text">
+                                    <textarea name="message" id="upload-message" rows="6"
+                                        placeholder="이야기나 텍스트를 입력해보세요."></textarea>
+                                    </div>
+
+                                    <!-- 20%: WAV 업로드 (작은 드롭존) -->
+                                    <div class="meta-audio">
+                                    <div id="audio-drop" class="mini-drop" tabindex="0" aria-label="WAV 파일 업로드">
+                                        <input type="file" id="audio-input" name="audio"
+                                            accept=".wav,audio/wav" class="mini-input" aria-label="WAV 파일 선택">
+                                        <div class="mini-prompt">
+                                        <i class="fa fa-microphone" aria-hidden="true"></i>
+                                        <p class="m-0"><strong>음성파일 업로드</strong></p>
+                                        <small class="d-block">wav 파일 드래그/클릭</small>
+                                        <small id="audio-filename" class="filename"></small>
+                                        </div>
+                                    </div>
+                                    <audio id="audio-preview" controls style="display:none; width:100%; margin-top:.6rem"></audio>
+                                    </div>
+                                </div>
                             </div>
                             <div class="upload-actions">
-                                <button type="submit" class="upload-btn">전송</button>
-                                <span id="upload-status" class="upload-status" role="status" aria-live="polite"></span>
+                            <div class="voice-controls">
+                                <div class="h-wrap">
+                                    <label for="voice-level" class="sr-only">음량(−20~20)</label>
+                                    <input
+                                        id="voice-level"
+                                        class="h-range"
+                                        type="range"
+                                        name="voice_level"
+                                        min="-20" max="20" step="1" value="0"
+                                        aria-label="음량"
+                                    />
+                                    <output id="voice-level-value" class="h-readout">0</output>
+                                </div>
+                                <label class="sr-only" for="voice-gender">성별</label>
+                                <div class="pill-select pill-select--primary">
+                                <select id="voice-gender" name="voice_gender" required>
+                                    <option value="" disabled selected>SELECT</option>
+                                    <option value="male">남성</option>
+                                    <option value="female">여성</option>
+                                </select>
+                                </div>
+
+                                <label class="sr-only" for="voice-age">연령대</label>
+                                <div class="pill-select pill-select--ghost">
+                                <select id="voice-age" name="voice_age" required>
+                                    <option value="" disabled selected>SELECT</option>
+                                    <option value="young">청년</option>
+                                    <option value="middle">중년</option>
+                                    <option value="old">노년</option>
+                                </select>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="upload-btn">전송</button>
+                            <span id="upload-status" class="upload-status" role="status" aria-live="polite"></span>
                             </div>
                         </form>
                     </div>
@@ -702,6 +759,48 @@
         <!-- JAVASCRIPTS -->
         <script type="text/javascript" src="assets/js/plugins.js"></script>
         <script type="text/javascript" src="assets/js/main.js"></script>
+
+
+        <!-- 음성 슬라이드바 -->
+        <script>
+        (function(){
+            const slider = document.getElementById('voice-level');        // range(-20~20)
+            const out    = document.getElementById('voice-level-value');  // 숫자 표시
+            const gender = document.getElementById('voice-gender');       // 성별 select
+
+            if(!slider || !out) return;
+
+            const clamp = v => Math.min(Math.max(v, parseFloat(slider.min)), parseFloat(slider.max));
+            const sync  = () => { out.textContent = slider.value; };
+
+            // 슬라이더 값 바뀔 때 숫자 갱신
+            slider.addEventListener('input', sync);
+            slider.addEventListener('change', sync);
+            sync();
+
+            // 성별 선택 시 슬라이더 자동 이동: 남성→-6, 여성→+6
+            if(gender){
+                const applyByGender = () => {
+                let target = null;
+                if (gender.value === 'male')   target = -6;
+                else if (gender.value === 'female') target = 6;
+
+                if (target !== null) {
+                    slider.value = clamp(target);
+                    // 다른 리스너나 UI 업데이트를 위해 input 이벤트 발생
+                    slider.dispatchEvent(new Event('input', { bubbles: true }));
+                }
+                };
+
+                gender.addEventListener('change', applyByGender);
+
+                // 페이지가 미리 선택된 상태로 로드된 경우도 반영
+                if (gender.value === 'male' || gender.value === 'female') {
+                applyByGender();
+                }
+            }
+        })();
+        </script>
    
    
    

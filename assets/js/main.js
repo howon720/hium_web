@@ -233,3 +233,48 @@ function playResult(url){
       showLoading();
     }, { capture: true });
   })();
+
+  //  === SERVICE: wav 파일 입력칸
+(function(){
+  const input = document.getElementById('audio-input');
+  const nameEl = document.getElementById('audio-filename');
+  const audioEl = document.getElementById('audio-preview');
+  const drop = document.getElementById('audio-drop');
+
+  if(!input || !drop) return;
+
+  // 파일 선택 시 미리보기/이름 표시
+  const show = (file) => {
+    if(!file) return;
+    nameEl.textContent = file.name;
+    audioEl.src = URL.createObjectURL(file);
+    audioEl.style.display = 'block';
+    audioEl.onloadeddata = () => URL.revokeObjectURL(audioEl.src);
+  };
+
+  input.addEventListener('change', () => {
+    const f = input.files && input.files[0];
+    if (f) show(f);
+  });
+
+  // 드래그 앤 드롭 UX (선택)
+  ['dragenter','dragover'].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); drop.classList.add('dragover'); })
+  );
+  ['dragleave','drop'].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); e.stopPropagation(); drop.classList.remove('dragover'); })
+  );
+  drop.addEventListener('drop', e => {
+    const files = e.dataTransfer?.files;
+    if (files && files.length) {
+      const f = files[0];
+      // accept 필터와 동일하게 .wav만 허용
+      if (f.type === 'audio/wav' || /\.wav$/i.test(f.name)) {
+        // input.files를 직접 대입할 수는 없으니, 미리보기만 갱신
+        show(f);
+      } else {
+        alert('WAV 파일만 업로드할 수 있습니다.');
+      }
+    }
+  });
+})();
